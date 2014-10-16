@@ -12,7 +12,8 @@ controllers:
     /:
       tools.proxy.on: true
       tools.orm_session.on: true
-      tools.sessions.on: truetools.sessions.storage_type: memcached
+      tools.sessions.on: true
+      tools.sessions.storage_type: memcached
       tools.staticdir.root: /home/wk/src/promua-chat/static
       tools.staticfile.root: /home/wk/src/promua-chat/static
     /css:
