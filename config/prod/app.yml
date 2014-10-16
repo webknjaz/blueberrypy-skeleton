@@ -13,7 +13,7 @@ controllers:
       tools.proxy.on: true
       tools.orm_session.on: true
       tools.sessions.on: true
-      tools.sessions.storage_type: memcached
+      #tools.sessions.storage_type: memcached
       tools.staticdir.root: /app/static
       tools.staticfile.root: /app/static
     /css:
