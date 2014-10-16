@@ -20,21 +20,21 @@ handlers:
   rfile:
     class: logging.handlers.RotatingFileHandler
     formatter: debug
-    filename: /app/log/promua_chat.log
+    filename: /app/logs/promua_chat.log
     maxBytes: 1048576
     backupCount: 5
     encoding: utf8
   trfile:
     class: logging.handlers.TimedRotatingFileHandler
     formatter: warning
-    filename: /app/log/promua_chat.log
+    filename: /app/logs/promua_chat.log
     when: midnight
     backupCount: 60
     encoding: utf8
   sa:
     class: logging.handlers.RotatingFileHandler
     formatter: debug
-    filename: /app/log/promua_chat.log
+    filename: /app/logs/promua_chat.log
     maxBytes: 1048576
     backupCount: 5
     encoding: utf8
