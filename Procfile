@@ -1,1 +1,1 @@
-web: blueberrypy serve -b 127.0.0.1:$PORT
+web: blueberrypy serve -b 0.0.0.0:$PORT
