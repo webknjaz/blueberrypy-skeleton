@@ -1,0 +1,54 @@
+project_metadata:
+  package: promua_chat
+
+global:
+  environment: production
+  engine.logging.on: true
+  engine.sqlalchemy.on: true
+
+controllers:
+  '':
+    controller: !!python/name:promua_chat.controller.Root
+    /:
+      tools.proxy.on: true
+      tools.orm_session.on: true
+      tools.sessions.on: truetools.sessions.storage_type: memcached
+      tools.staticdir.root: /home/wk/src/promua-chat/static
+      tools.staticfile.root: /home/wk/src/promua-chat/static
+    /css:
+      tools.sessions.on: false
+      tools.staticdir.on: true
+      tools.staticdir.dir: css
+    /js:
+      tools.sessions.on: false
+      tools.staticdir.on: true
+      tools.staticdir.dir: js
+    /img:
+      tools.sessions.on: false
+      tools.staticdir.on: true
+      tools.staticdir.dir: img
+    /favicon.ico:
+      tools.sessions.on: false
+      tools.staticfile.on: true
+      tools.staticfile.filename: favicon.ico
+  /api:
+    controller: !!python/name:promua_chat.rest_controller.rest_controller
+    /:
+      request.dispatch: !!python/name:promua_chat.rest_controller.rest_controller
+      tools.proxy.on: true
+      tools.orm_session.on: true
+      error_page.default: !!python/name:promua_chat.rest_controller.generic_error_handler
+      request.error_response: !!python/name:promua_chat.rest_controller.unexpected_error_handler
+
+sqlalchemy_engine:
+  url: sqlite://
+  pool_recycle: 3600
+
+jinja2:
+  loader: !!python/object:jinja2.loaders.FileSystemLoader
+          encoding: utf-8
+          searchpath: [/home/wk/src/promua-chat/src/promua_chat/templates]
+  bytecode_cache: !!python/object:jinja2.bccache.FileSystemBytecodeCache {directory: /home/wk/src/promua-chat/.cache,
+                                                                          pattern: __jinja2_%s.cache}
+  auto_reload: false
+  use_webassets: true
