@@ -11,8 +11,8 @@ controllers:
     /:
       tools.orm_session.on: true
       tools.sessions.on: true
-      tools.staticdir.root: /home/wk/src/promua-chat/static
-      tools.staticfile.root: /home/wk/src/promua-chat/static
+      tools.staticdir.root: /app/static
+      tools.staticfile.root: /app/static
     /css:
       tools.sessions.on: false
       tools.staticdir.on: true
@@ -42,8 +42,8 @@ sqlalchemy_engine:
 jinja2:
   loader: !!python/object:jinja2.loaders.FileSystemLoader
           encoding: utf-8
-          searchpath: [/home/wk/src/promua-chat/src/promua_chat/templates]
-  bytecode_cache: !!python/object:jinja2.bccache.FileSystemBytecodeCache {directory: /home/wk/src/promua-chat/.cache,
+          searchpath: [/app/src/promua_chat/templates]
+  bytecode_cache: !!python/object:jinja2.bccache.FileSystemBytecodeCache {directory: /app/.cache,
                                                                           pattern: __jinja2_%s.cache}
   auto_reload: true
   use_webassets: true
