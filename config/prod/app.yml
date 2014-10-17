@@ -10,24 +10,15 @@ controllers:
   '':
     controller: !!python/name:promua_chat.controller.Root
     /:
+      tools.sessions.on: false
       tools.proxy.on: true
-      tools.orm_session.on: true
-      tools.sessions.on: true
-      #tools.sessions.storage_type: memcached
-      tools.staticdir.root: /app/static
-      tools.staticfile.root: /app/static
-    /css:
+      tools.staticdir.root: /app/static/build/web
+      tools.staticfile.root: /app/static/web
+    /chat:
       tools.sessions.on: false
       tools.staticdir.on: true
-      tools.staticdir.dir: css
-    /js:
-      tools.sessions.on: false
-      tools.staticdir.on: true
-      tools.staticdir.dir: js
-    /img:
-      tools.sessions.on: false
-      tools.staticdir.on: true
-      tools.staticdir.dir: img
+      tools.staticdir.dir: .
+      tools.staticdir.index: dartchat.html
     /favicon.ico:
       tools.sessions.on: false
       tools.staticfile.on: true
@@ -37,12 +28,13 @@ controllers:
     /:
       request.dispatch: !!python/name:promua_chat.rest_controller.rest_controller
       tools.proxy.on: true
+      tools.sessions.on: true
       tools.orm_session.on: true
       error_page.default: !!python/name:promua_chat.rest_controller.generic_error_handler
       request.error_response: !!python/name:promua_chat.rest_controller.unexpected_error_handler
 
 sqlalchemy_engine:
-  url: sqlite://
+  url: postgres://mnmiwvalcdbdju:Mp1TuEZeHXXon0de1PZSrIwjKu@ec2-54-247-78-153.eu-west-1.compute.amazonaws.com:5432/d7683oe93f51ja
   pool_recycle: 3600
 
 jinja2:

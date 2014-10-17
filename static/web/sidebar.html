@@ -1,0 +1,13 @@
+<div class="container">
+  <div class="row">
+    <div class="well">Hi, {{ name }}!<br><a href="#logout">logout</a></div>
+  </div>
+</div>
+<ul class="nav nav-pills nav-stacked">
+  <li ng-repeat="room in rooms" ng-class="{'active':room.active}">
+    <a href="{{ room.name }}">
+      <span class="badge pull-right" ng-show="room.unread_count > 0">{{ room.unread_count }}</span>
+      {{ room.name }}
+    </a>
+  </li>
+</ul>

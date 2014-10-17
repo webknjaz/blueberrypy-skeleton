@@ -1,0 +1,11 @@
+name: dartchat
+description: A sample web application
+dependencies:
+  angular: any
+  browser: any
+  start: any
+  web_components: any
+
+transformers:
+- angular
+  

@@ -1,0 +1,28 @@
+{
+  "meta": {
+    "name": "#portaone",
+    "users": [2,1,3]
+  },
+  "messages": [
+    {
+      "time": "00:03",
+      "user_id": 1,
+      "text": "hi, there"
+    },
+    {
+      "time": "00:03",
+      "user_id": 3,
+      "text": "hey"
+    },
+    {
+      "time": "00:03",
+      "user_id": 2,
+      "text": "hi,"
+    },
+    {
+      "time": "00:03",
+      "user_id": 2,
+      "text": "there"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+
+<html ng-app>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Dartchat</title>
+    
+    <script src="packages/web_components/platform.js"></script>
+    <script src="packages/web_components/dart_support.js"></script>
+    <script async type="application/dart" src="dartchat.dart"></script>
+    <script async src="packages/browser/dart.js"></script>
+    
+    <link rel="stylesheet" href="dartchat.css">
+  </head>
+  <body>
+    <div u>{{name}}<input type="text" ng-model="name" placeholder="type name here"><br>
+    </div>
+    <div ct>
+      Input:
+      <input type="text" ng-model="str" placeholder="type something here"><br>
+      Output:
+      <div ng-cloack> Value: {{str}}</div>
+      <!--div> Length: {{str.length }}</div-->
+    </div>
+  </body>
+</html>
