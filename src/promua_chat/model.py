@@ -5,37 +5,64 @@ from datetime import datetime, timedelta
 from hashlib import sha256
 
 from sqlalchemy import Column, Integer, UnicodeText, Date, DateTime, String, \
-    BigInteger, Enum, SmallInteger, func, text
-from sqlalchemy.orm import deferred
+    BigInteger, Enum, SmallInteger, func, text, \
+    ForeignKey, Table
+from sqlalchemy.orm import deferred, relationship, backref
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.hybrid import hybrid_property
+
+from sqlalchemy.schema import UniqueConstraint
 
 Base = declarative_base()
 metadata = Base.metadata
 
+from sqlalchemy.types import TypeDecorator, VARCHAR
+import json
 
-__all__ = ["User"]
+class JSONEncodedDict(TypeDecorator):
+    """Represents an immutable structure as a json-encoded string.
+
+    Usage::
+
+        JSONEncodedDict(255)
+
+    """
+
+    impl = VARCHAR
+
+    def process_bind_param(self, value, dialect):
+        if value is not None:
+            value = json.dumps(value)
+
+        return value
+
+    def process_result_value(self, value, dialect):
+        return json.loads(value) if value is not None else []
 
 
-# NOTE: This class is PostgreSQL specific. You should customize age() and the
-# character column sizes if you want to use other databases.
+room_membership_association = Table('room_membership', Base.metadata,
+    Column('user_id', Integer, ForeignKey('users.id')),
+    Column('room_id', Integer, ForeignKey('chat_rooms.id'))
+)
+
+
+__all__ = ["User","Room","Message","RoomMembership"]
+
+
 class User(Base):
     """
-    This example class represents a Facebook user. You can customize this class
-    however you want.
+    Typical User description
     """
 
-    __tablename__ = "user"
+    __tablename__ = "users"
 
 
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
 
     id = Column(Integer, autoincrement=True, primary_key=True)
-    fbid = Column(BigInteger, unique=True, index=True)
-    username = Column(UnicodeText, unique=True, index=True)
-    displayname = Column(UnicodeText, nullable=False)
-    email = Column(UnicodeText, unique=True, nullable=False, index=True)
+    username = Column(String(20), unique=True, index=True)
+    displayname = Column(String(35), nullable=False)
 
     _salt = Column("salt", String(12))
 
@@ -102,29 +129,49 @@ class User(Base):
         return self.password == self.__encrypt_password(password,
                                                         b64decode(str(self.salt)))
 
-    sex = Column(Enum("m", "f", name="sex"))
-    date_of_birth = Column(Date)
-    bio = deferred(Column(UnicodeText))
-
-    @hybrid_property
-    def age(self):
-        """Property calculated from (current time - :attr:`User.date_of_birth` - leap days)"""
-        if self.date_of_birth:
-            today = (datetime.utcnow() + timedelta(hours=self.timezone)).date()
-            birthday = self.date_of_birth
-            if isinstance(birthday, datetime):
-                birthday = birthday.date()
-            age = today - (birthday or (today - timedelta(1)))
-            return (age.days - calendar.leapdays(birthday.year, today.year)) / 365
-        return -1
-
-    @age.expression
-    def age(cls):
-        return func.date_part("year", func.age(cls.date_of_birth))
-
-    locale = Column(String(10))
-    timezone = Column(SmallInteger)
-
     created = Column(DateTime, default=datetime.utcnow, server_default=text("now()"), nullable=False)
-    lastmodified = Column(DateTime, default=datetime.utcnow, server_default=text("now()"), nullable=False)
-    lastaccessed = Column(DateTime, default=datetime.utcnow, server_default=text("now()"), nullable=False)
+
+class Message(Base):
+    """
+    Message in Room
+    """
+
+    __tablename__ = "messages"
+
+
+    def __init__(self, **kwargs):
+        super(Message, self).__init__(**kwargs)
+
+    id = Column(Integer, autoincrement=True, primary_key=True)
+    room_id = Column(Integer, ForeignKey('chat_rooms.id'))
+    user_id = Column(Integer, ForeignKey('users.id'))
+    text = Column(UnicodeText)
+    meta = Column(JSONEncodedDict)
+    date_time = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    author = relationship("User",
+                        backref="messages")
+
+
+class Room(Base):
+    """
+    Room for hanging out
+    """
+
+    __tablename__ = "chat_rooms"
+
+
+    def __init__(self, **kwargs):
+        super(Room, self).__init__(**kwargs)
+
+    id = Column(Integer, autoincrement=True, primary_key=True)
+    name = Column(String(20), nullable=False, unique=True, index=True)
+    creator_id = Column(Integer, ForeignKey('users.id'))
+    
+    members = relationship("User",
+                        secondary=room_membership_association,
+                        backref="rooms")
+    # for creator
+    creator = relationship("User",
+                        backref="own_rooms")
+
