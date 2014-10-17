@@ -4,7 +4,7 @@ from blueberrypy.template_engine import get_template
 class Root(object):
     @cherrypy.expose
     def default(self):
-        raise cherrypy.HTTPRedirect('http://promua-chat.herokuapp.com/chat')
+        raise cherrypy.HTTPRedirect('/chat')
 
 #    @cherrypy.expose
 #    def index(self):
