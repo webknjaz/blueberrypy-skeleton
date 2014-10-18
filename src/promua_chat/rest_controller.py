@@ -15,6 +15,18 @@ from blueberrypy.util import from_collection, to_collection
 from promua_chat import api
 from promua_chat.model import User, Room, Message
 
+import functools
+
+def auth(func):
+    @functools.wraps(func)
+    def wrapper(obj):
+        '''
+        obj is an object with context of func
+        '''
+        if not cherrypy.session.get('user_id'):
+            raise cherrypy.HTTPError(401)
+        return func(obj)
+    return wrapper
 
 class AuthController:
 
@@ -34,6 +46,8 @@ class AuthController:
             raise HTTPError(401)
         raise HTTPError(400)
 
+    @cherrypy.tools.json_out()
+    @auth
     def logout(self, **kwargs):
         try:
             del cherrypy.session['user_id']
@@ -46,6 +60,7 @@ class RoomController:
     _cp_config = {"tools.json_in.on": True}
 
     @cherrypy.tools.json_out()
+    @auth
     def create(self, **kwargs):
         '''
             `room_create`
@@ -59,6 +74,7 @@ class RoomController:
         return to_collection(room, sort_keys=True)
 
     @cherrypy.tools.json_out()
+    @auth
     def list(self, **kwargs):
         '''
             `room_list`
@@ -70,6 +86,7 @@ class RoomController:
         raise httperror(404)
 
     @cherrypy.tools.json_out()
+    @auth
     def post_message(self, room_id, **kwargs):
         '''
             `room_post_message`
@@ -90,6 +107,7 @@ class RoomController:
         return resp
 
     @cherrypy.tools.json_out()
+    @auth
     def show(self, id:'room id here', **kwargs):
         '''
             `room_list_messages`
@@ -103,6 +121,7 @@ class RoomController:
         raise HTTPError(404)
 
     @cherrypy.tools.json_out()
+    @auth
     def join_user(self, id:'room user joins to', **kwargs):
         '''
             `room_join_user`
@@ -127,6 +146,7 @@ class UserController:
     _cp_config = {"tools.json_in.on": True}
 
     @cherrypy.tools.json_out()
+    @auth
     def create(self, **kwargs):
         '''
         `user_register`
@@ -141,6 +161,7 @@ class UserController:
                           sort_keys=True)
 
     @cherrypy.tools.json_out()
+    @auth
     def show(self, **kwargs):
         '''
         `user_show`
@@ -154,6 +175,7 @@ class UserController:
         raise HTTPError(404)
 
     @cherrypy.tools.json_out()
+    @auth
     def list_own_rooms(self, **kwargs):
         '''
         `user_show_own_rooms`
@@ -165,6 +187,8 @@ class UserController:
             return [to_collection(room, sort_keys=true) for room in user.own_rooms]
         return []
 
+    @cherrypy.tools.json_out()
+    @auth
     def list_rooms(self, **kwargs):
         '''
         `user_show_rooms`
@@ -176,6 +200,8 @@ class UserController:
             return [to_collection(room, sort_keys=true) for room in user.rooms]
         return []
 
+    @cherrypy.tools.json_out()
+    @auth
     def leave_room(self, room_id, **kwargs):
         '''
         `user_leave_room`
