@@ -70,7 +70,7 @@ class RoomController:
         req = cherrypy.request
         orm_session = req.orm_session
         room = from_collection(req.json, Room())
-        room.id = cherrypy.session['user_id']
+        room.creator_id = cherrypy.session['user_id']
         try:
             orm_session.add(room)
             orm_session.commit()
@@ -87,7 +87,7 @@ class RoomController:
         '''
         rooms = api.get_all_rooms(cherrypy.request.orm_session)
         if rooms:
-            return [to_collection(room, sort_keys=true) for room in rooms]
+            return [to_collection(room, sort_keys=True) for room in rooms]
         raise httperror(404)
 
     @cherrypy.tools.json_out()
@@ -122,7 +122,7 @@ class RoomController:
         room_id = int(id)
         room = api.get_room(cherrypy.request.orm_session, id)
         if room:
-            return [to_collection(msg, sort_keys=true) for msg in room.messages]
+            return [to_collection(msg, sort_keys=True) for msg in room.messages]
         raise HTTPError(404)
 
     @cherrypy.tools.json_out()
@@ -187,9 +187,7 @@ class UserController:
         '''
         user = api.find_user_by_id(cherrypy.request.orm_session,
                                     cherrypy.session['user_id'])
-        if user.own_rooms:
-            return [to_collection(room, sort_keys=true) for room in user.own_rooms]
-        return []
+        return [to_collection(room, sort_keys=True) for room in user.own_rooms]
 
     @cherrypy.tools.json_out()
     @auth
@@ -201,7 +199,7 @@ class UserController:
         user = api.find_user_by_id(cherrypy.request.orm_session,
                                     cherrypy.session['user_id'])
         if user.rooms:
-            return [to_collection(room, sort_keys=true) for room in user.rooms]
+            return [to_collection(room, sort_keys=True) for room in user.rooms]
         return []
 
     @cherrypy.tools.json_out()
