@@ -46,7 +46,7 @@ room_membership_association = Table('room_membership', Base.metadata,
 )
 
 
-__all__ = ["User","Room","Message","RoomMembership"]
+__all__ = ["User","Room","Message"]
 
 
 class User(Base):
@@ -152,6 +152,9 @@ class Message(Base):
     author = relationship("User",
                         backref="messages")
 
+    room = relationship("Room",
+                        backref="messages")
+
 
 class Room(Base):
     """
@@ -174,4 +177,3 @@ class Room(Base):
     # for creator
     creator = relationship("User",
                         backref="own_rooms")
-

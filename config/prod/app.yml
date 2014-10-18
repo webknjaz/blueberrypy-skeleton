@@ -24,9 +24,9 @@ controllers:
       tools.staticfile.on: true
       tools.staticfile.filename: favicon.ico
   /api:
-    controller: !!python/name:promua_chat.rest_controller.rest_controller
+    controller: !!python/name:promua_chat.rest_controller.rest_api
     /:
-      request.dispatch: !!python/name:promua_chat.rest_controller.rest_controller
+      request.dispatch: !!python/name:promua_chat.rest_controller.rest_api
       tools.proxy.on: true
       tools.sessions.on: true
       tools.orm_session.on: true

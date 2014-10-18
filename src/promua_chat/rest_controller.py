@@ -13,65 +13,232 @@ from cherrypy.lib import httputil as cphttputil
 from blueberrypy.util import from_collection, to_collection
 
 from promua_chat import api
-from promua_chat.model import User
+from promua_chat.model import User, Room, Message
 
 
-class UserController(object):
+class AuthController:
+
+    _cp_config = {"tools.json_in.on": True}
+
+    @cherrypy.tools.json_out()
+    def login(self, **kwargs):
+        req = cherrypy.request
+        orm_session = req.orm_session
+        params = req.json
+        if 'username' in params and 'password' in params:
+            user = api.find_user_by_name(orm_session, params['username'])
+            if user and user.validate_password(params['password']):
+                cherrypy.session['user_id'] = user.id
+                return to_collection(user, excludes=("password", "salt"),
+                                  sort_keys=True)
+            raise HTTPError(401)
+        raise HTTPError(400)
+
+    def logout(self, **kwargs):
+        try:
+            del cherrypy.session['user_id']
+        except:
+            raise HTTPError(404)
+
+
+class RoomController:
 
     _cp_config = {"tools.json_in.on": True}
 
     @cherrypy.tools.json_out()
     def create(self, **kwargs):
+        '''
+            `room_create`
+            [POST] /room/
+        '''
+        req = cherrypy.request
+        orm_session = req.orm_session
+        room = from_collection(req.json, Room())
+        orm_session.add(room)
+        orm_session.commit()
+        return to_collection(room, sort_keys=True)
+
+    @cherrypy.tools.json_out()
+    def list(self, **kwargs):
+        '''
+            `room_list`
+            [GET] /room/
+        '''
+        rooms = api.get_all_rooms(cherrypy.request.orm_session)
+        if rooms:
+            return [to_collection(room, sort_keys=true) for room in rooms]
+        raise httperror(404)
+
+    @cherrypy.tools.json_out()
+    def post_message(self, room_id, **kwargs):
+        '''
+            `room_post_message`
+            [POST] /room/{id}
+        '''
+        room_id = int(room_id)
+        req = cherrypy.request
+        req.json['user_id'] = cherrypy.session['user_id']
+        req.json['room_id'] = room_id
+        if 'meta' not in req.json:
+            req.json['meta'] = {}
+        orm_session = req.orm_session
+        msg = from_collection(req.json, Message())
+        orm_session.add(msg)
+        orm_session.commit()
+        resp = to_collection(msg, sort_keys=True)
+        #resp['author'] = to_collection(msg.author, sort_keys=True)
+        return resp
+
+    @cherrypy.tools.json_out()
+    def show(self, id:'room id here', **kwargs):
+        '''
+            `room_list_messages`
+            [GET] /room/{id}
+        '''
+
+        room_id = int(id)
+        room = api.get_room(cherrypy.request.orm_session, id)
+        if room:
+            return [to_collection(msg, sort_keys=true) for msg in room.messages]
+        raise HTTPError(404)
+
+    @cherrypy.tools.json_out()
+    def join_user(self, id:'room user joins to', **kwargs):
+        '''
+            `room_join_user`
+            [PUT] /room/{id}
+        '''
+
+        room_id = int(id)
+        req = cherrypy.request
+        orm_session = req.orm_session
+        room = api.get_room(orm_session, room_id)
+        user = api.find_user_by_id(orm_session, cherrypy.session['user_id'])
+        if room:
+            room.members.append(user)
+            orm_session.merge(room) # add() ?
+            orm_session.commit()
+            return to_collection(room, sort_keys=True)
+        raise HTTPError(400)
+
+
+class UserController:
+
+    _cp_config = {"tools.json_in.on": True}
+
+    @cherrypy.tools.json_out()
+    def create(self, **kwargs):
+        '''
+        `user_register`
+        [POST] /user/
+        '''
         req = cherrypy.request
         orm_session = req.orm_session
         user = from_collection(req.json, User())
         orm_session.add(user)
         orm_session.commit()
-        return to_collection(user, includes="age", excludes=("password", "salt"),
+        return to_collection(user, excludes=("password", "salt"),
                           sort_keys=True)
 
     @cherrypy.tools.json_out()
-    def show(self, id, **kwargs):
-        id = int(id)
-        user = api.find_user_by_id(cherrypy.request.orm_session, id)
+    def show(self, **kwargs):
+        '''
+        `user_show`
+        [GET] /user/
+        '''
+        user = api.find_user_by_id(cherrypy.request.orm_session,
+                                    cherrypy.session['user_id'])
         if user:
-            return to_collection(user, includes="age", excludes=("password", "salt"),
+            return to_collection(user, excludes=("password", "salt"),
                               sort_keys=True)
         raise HTTPError(404)
 
     @cherrypy.tools.json_out()
-    def update(self, id, **kwargs):
-        id = int(id)
-        req = cherrypy.request
-        orm_session = req.orm_session
-        user = api.find_user_by_id(orm_session, id)
-        if user:
-            user = from_collection(req.json, user)
-            orm_session.commit()
-            return to_collection(user, includes="age", excludes=("password", "salt"),
-                              sort_keys=True)
-        raise HTTPError(404)
+    def list_own_rooms(self, **kwargs):
+        '''
+        `user_show_own_rooms`
+        [GET] /user/rooms/own
+        '''
+        user = api.find_user_by_id(cherrypy.request.orm_session,
+                                    cherrypy.session['user_id'])
+        if user.own_rooms:
+            return [to_collection(room, sort_keys=true) for room in user.own_rooms]
+        return []
 
-    def delete(self, id, **kwargs):
-        id = int(id)
+    def list_rooms(self, **kwargs):
+        '''
+        `user_show_rooms`
+        [GET] /user/rooms
+        '''
+        user = api.find_user_by_id(cherrypy.request.orm_session,
+                                    cherrypy.session['user_id'])
+        if user.rooms:
+            return [to_collection(room, sort_keys=true) for room in user.rooms]
+        return []
+
+    def leave_room(self, room_id, **kwargs):
+        '''
+        `user_leave_room`
+        [DELETE] /user/rooms/{room_id}
+        '''
+        room_id = int(room_id)
         req = cherrypy.request
         orm_session = req.orm_session
-        if not api.delete_user_by_id(orm_session, id):
+
+        user = api.find_user_by_id(cherrypy.request.orm_session,
+                                    cherrypy.session['user_id'])
+        room = api.get_room(orm_session, room_id)
+
+        if not room.members.remove(user):
             raise HTTPError(404)
-        else:
-            orm_session.commit()
+
+        orm_session.add(room)
+        orm_session.commit()
 
 
-rest_controller = cherrypy.dispatch.RoutesDispatcher()
-rest_controller.mapper.explicit = False
-rest_controller.connect("new_user", "/", UserController, action="create",
-                        conditions={"method":["POST"]})
-rest_controller.connect("show_user", "/{id}", UserController, action="show",
-                        conditions={"method":["GET"]})
-rest_controller.connect("update_user", "/{id}", UserController, action="update",
-                        conditions={"method":["PUT"]})
-rest_controller.connect("delete_user", "/{id}", UserController, action="delete",
-                        conditions={"method":["DELETE"]})
+# RESTful-like bindings
+rest_api = cherrypy.dispatch.RoutesDispatcher()
+rest_api.mapper.explicit = False
+
+# register [1]
+rest_api.connect("user_register", "/user/", UserController,
+                        action="create", conditions={"method":["POST"]})
+# user info
+rest_api.connect("user_show", "/user/", UserController,
+                        action="show", conditions={"method":["GET"]})
+# list rooms user joined
+rest_api.connect("user_show_rooms", "/user/rooms", UserController,
+                        action="list_rooms", conditions={"method":["GET"]})
+# list rooms user created
+rest_api.connect("user_show_own_rooms", "/user/rooms/own", UserController,
+                        action="list_own_rooms", conditions={"method":["GET"]})
+# leave room [6]
+rest_api.connect("user_leave_room", "/user/rooms/{room_id}", UserController,
+                        action="leave_room", conditions={"method":["DELETE"]})
+
+# authenticate user
+rest_api.connect("user_login", "/auth/", AuthController,
+                        action="login", conditions={"method":["POST"]})
+# sign out user
+rest_api.connect("user_logout", "/auth/", AuthController,
+                        action="logout", conditions={"method":["DELETE"]})
+
+# list rooms [3]
+rest_api.connect("room_list", "/room/", RoomController,
+                        action="list", conditions={"method":["GET"]})
+
+# join user to room [4]
+rest_api.connect("room_join_user", "/room/{id}", RoomController,
+                        action="join_user", conditions={"method":["PUT"]})
+
+# create new room [2]
+rest_api.connect("room_create", "/room/", RoomController,
+                        action="create", conditions={"method":["POST"]})
+# write a message in chat [5]
+rest_api.connect("room_post_message", "/room/{id}", RoomController,
+                        action="post_message", conditions={"method":["POST"]})
+rest_api.connect("room_list_messages", "/room/{id}", RoomController,
+                        action="show", conditions={"method":["GET"]})
 
 # Error handlers
 
