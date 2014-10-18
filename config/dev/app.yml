@@ -10,6 +10,8 @@ controllers:
     controller: !!python/name:promua_chat.controller.Root
     /:
       tools.sessions.on: false
+      tools.sessions.persistent: True
+      tools.sessions.timeout: 20160 #2 weeks in minutes
       tools.staticdir.root: /app/static/build/web
       tools.staticfile.root: /app/static/web
     /chat:
@@ -26,6 +28,8 @@ controllers:
     /:
       request.dispatch: !!python/name:promua_chat.rest_controller.rest_api
       tools.sessions.on: true
+      tools.sessions.persistent: True
+      tools.sessions.timeout: 20160 #2 weeks in minutes
       tools.orm_session.on: true
 
 sqlalchemy_engine:

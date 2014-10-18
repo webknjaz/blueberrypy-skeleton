@@ -74,6 +74,9 @@ class User(Base):
         if not self.id and not self._salt:
             self._salt = b64encode(os.urandom(8))
 
+        if isinstance(self._salt, str):
+            self._salt = self._salt.encode('UTF-8')
+
         return self._salt
 
     # 64 is the length of the SHA-256 encoded string length
@@ -95,7 +98,7 @@ class User(Base):
         :type salt: an 8-byte long cryptographically random byte string
         """
 
-        if isinstance(password, unicode):
+        if isinstance(password, str):
             password_bytes = password.encode("UTF-8")
         else:
             password_bytes = password
@@ -105,7 +108,7 @@ class User(Base):
         hashed_password.update(salt)
         hashed_password = hashed_password.hexdigest()
 
-        if not isinstance(hashed_password, unicode):
+        if not isinstance(hashed_password, str):
             hashed_password = hashed_password.decode("UTF-8")
 
         return hashed_password
@@ -122,7 +125,7 @@ class User(Base):
     def validate_password(self, password):
         """Check the password against existing credentials.
 
-        :type password: unicode
+        :type password: str
         :param password: clear text password
         :rtype: bool
         """

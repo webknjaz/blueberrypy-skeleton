@@ -16,6 +16,7 @@ from promua_chat import api
 from promua_chat.model import User, Room, Message
 
 import functools
+import sqlalchemy
 
 def auth(func):
     @functools.wraps(func)
@@ -69,9 +70,13 @@ class RoomController:
         req = cherrypy.request
         orm_session = req.orm_session
         room = from_collection(req.json, Room())
-        orm_session.add(room)
-        orm_session.commit()
-        return to_collection(room, sort_keys=True)
+        room.id = cherrypy.session['user_id']
+        try:
+            orm_session.add(room)
+            orm_session.commit()
+            return to_collection(room, sort_keys=True)
+        except sqlalchemy.exc.IntegrityError:
+            raise HTTPError(403)
 
     @cherrypy.tools.json_out()
     @auth
@@ -146,7 +151,6 @@ class UserController:
     _cp_config = {"tools.json_in.on": True}
 
     @cherrypy.tools.json_out()
-    @auth
     def create(self, **kwargs):
         '''
         `user_register`
