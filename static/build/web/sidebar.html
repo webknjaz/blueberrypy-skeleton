@@ -4,7 +4,7 @@
   </div>
 </div>
 <ul class="nav nav-pills nav-stacked">
-  <li ng-repeat="r in rooms" ng-class="{'active': user.activeChat == r.name}">
+  <li ng-repeat="r in rooms" ng-class="{'active': room.name == r.name}">
     <a href="#{{ r.id }}" ng-click="loadRoom(r)">
       <span class="badge pull-right" ng-show="r.unread_count > 0">{{ r.unread_count }}</span>
       {{ r.name }}

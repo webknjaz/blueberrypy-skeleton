@@ -20,13 +20,13 @@ import sqlalchemy
 
 def auth(func):
     @functools.wraps(func)
-    def wrapper(obj):
+    def wrapper(*args, **kwargs):
         '''
         obj is an object with context of func
         '''
         if not cherrypy.session.get('user_id'):
             raise cherrypy.HTTPError(401)
-        return func(obj)
+        return func(*args, **kwargs)
     return wrapper
 
 class AuthController:
@@ -94,15 +94,14 @@ class RoomController:
 
     @cherrypy.tools.json_out()
     @auth
-    def post_message(self, room_id, **kwargs):
+    def post_message(self, id, **kwargs):
         '''
             `room_post_message`
             [POST] /room/{id}
         '''
-        room_id = int(room_id)
         req = cherrypy.request
         req.json['user_id'] = cherrypy.session['user_id']
-        req.json['room_id'] = room_id
+        req.json['room_id'] = int(id)
         if 'meta' not in req.json:
             req.json['meta'] = {}
         orm_session = req.orm_session
@@ -124,21 +123,27 @@ class RoomController:
         room_id = int(id)
         room = api.get_room(cherrypy.request.orm_session, id)
         if room:
-            return [to_collection(msg, sort_keys=True) for msg in room.messages]
+            msgs = []
+            for msg in room.messages:
+                author = to_collection(msg.author, excludes=("password", "salt"),
+                                        sort_keys=True)
+                msg = to_collection(msg, sort_keys=True)
+                msg['author'] = author
+                msgs.append(msg)
+            return msgs
         raise HTTPError(404)
 
     @cherrypy.tools.json_out()
     @auth
-    def join_user(self, id:'room user joins to', **kwargs):
+    def join_user(self, **kwargs):
         '''
             `room_join_user`
             [PUT] /room/{id}
         '''
 
-        room_id = int(id)
         req = cherrypy.request
         orm_session = req.orm_session
-        room = api.get_room(orm_session, room_id)
+        room = api.get_room(orm_session, req.json['room_id'])
         user = api.find_user_by_id(orm_session, cherrypy.session['user_id'])
         if room:
             room.members.append(user)
@@ -227,13 +232,17 @@ class UserController:
 
         user = api.find_user_by_id(cherrypy.request.orm_session,
                                     cherrypy.session['user_id'])
-        room = api.get_room(orm_session, room_id)
+        try:
+            room = api.get_room(orm_session, room_id)
 
-        if not room.members.remove(user):
+            room.members.remove(user)
+
+            orm_session.add(room)
+            orm_session.commit()
+
+            return {"status": "OK", "code": 200}
+        except:
             raise HTTPError(404)
-
-        orm_session.add(room)
-        orm_session.commit()
 
 
 # RESTful-like bindings
@@ -271,7 +280,7 @@ rest_api.connect("room_list", "/room/", RoomController,
                         action="list", conditions={"method":["GET"]})
 
 # join user to room [4]
-rest_api.connect("room_join_user", "/room/{id}", RoomController,
+rest_api.connect("room_join_user", "/room/", RoomController,
                         action="join_user", conditions={"method":["PUT"]})
 
 # create new room [2]

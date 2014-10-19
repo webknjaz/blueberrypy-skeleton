@@ -16749,7 +16749,7 @@ w.rm()
 s.push(w)
 t.bL()},"$0","VQk",0,0,41],
 UI:{
-"^":"a;E6,tQ*,rd@,YJ*,GJ@,LJ@,F1@"},
+"^":"a;E6,tQ*,rd@,YJ*,GJ@,LJ@"},
 FQ:{
 "^":"a;E6,DR,jO*,oc*,HS<,jH@",
 cD:function(a,b){this.DR.Un(J.eS(b)).ml(new U.E1D(this,b)).OA(new U.Aqe())}},
@@ -17919,20 +17919,13 @@ w207:{
 "^":"TpZ:123;",
 $0:[function(){var z=N.Jx("User")
 z.To("User created")
-return new U.UI(z,"<username>","","",!0,!0,"#portaone")},"$0",null,0,0,null,"call"],
+return new U.UI(z,"<username>","","",!1,!0)},"$0",null,0,0,null,"call"],
 $isEH:true},
 w208:{
 "^":"TpZ:14;",
-$1:[function(a){var z,y,x,w,v,u,t
-z=N.Jx("Room")
-y=P.EF(["id",0,"text","hi, there!","user_id",10,"meta",P.Fl(null,null),"date_time","12-12-2012"],null,null)
-x=P.EF(["id",1,"text","hi!","user_id",1,"meta",P.Fl(null,null),"date_time","12-12-2012"],null,null)
-w=P.EF(["id",2,"text","hey!","user_id",2,"meta",P.Fl(null,null),"date_time","12-12-2012"],null,null)
-v=P.EF(["id",3,"text","greets!","user_id",6,"meta",P.Fl(null,null),"date_time","12-12-2012"],null,null)
-u=P.EF(["id",4,"text","good morning!","user_id",17,"meta",P.Fl(null,null),"date_time","12-12-2012"],null,null)
-t=P.EF(["id",5,"text","hey-hey!","user_id",11,"meta",P.Fl(null,null),"date_time","12-12-2012"],null,null)
+$1:[function(a){var z=N.Jx("Room")
 z.To("Room instance created")
-return new U.FQ(z,a,null,"#portaone",null,[y,x,w,v,u,t])},"$1",null,2,0,null,406,"call"],
+return new U.FQ(z,a,null,"",null,[])},"$1",null,2,0,null,406,"call"],
 $isEH:true},
 w209:{
 "^":"TpZ:14;",
@@ -33506,13 +33499,12 @@ if(!"name" in GVy)GVy.name="GVy"
 $desc=$collectedClasses.GVy
 if($desc instanceof Array)$desc=$desc[1]
 GVy.prototype=$desc
-function UI(E6,tQ,rd,YJ,GJ,LJ,F1){this.E6=E6
+function UI(E6,tQ,rd,YJ,GJ,LJ){this.E6=E6
 this.tQ=tQ
 this.rd=rd
 this.YJ=YJ
 this.GJ=GJ
-this.LJ=LJ
-this.F1=F1}UI.builtin$cls="UI"
+this.LJ=LJ}UI.builtin$cls="UI"
 if(!"name" in UI)UI.name="UI"
 $desc=$collectedClasses.UI
 if($desc instanceof Array)$desc=$desc[1]
@@ -33527,8 +33519,6 @@ UI.prototype.gGJ=function(){return this.GJ}
 UI.prototype.sGJ=function(v){return this.GJ=v}
 UI.prototype.gLJ=function(){return this.LJ}
 UI.prototype.sLJ=function(v){return this.LJ=v}
-UI.prototype.gF1=function(){return this.F1}
-UI.prototype.sF1=function(v){return this.F1=v}
 function FQ(E6,DR,jO,oc,HS,jH){this.E6=E6
 this.DR=DR
 this.jO=jO

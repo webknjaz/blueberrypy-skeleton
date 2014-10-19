@@ -19,9 +19,8 @@ class User {
   String username = '<username>';
   String displayname = '';
   String password = '';
-  bool isAuthorized = true; // TODO: set to false;
+  bool isAuthorized = false;
   bool exists = true;
-  String activeChat = '#portaone';
   
   User() {
     log.info('User created');
@@ -36,16 +35,9 @@ class Room {
   API api;
   
   int id;
-  String name = '#portaone'; // TODO: change to ''
+  String name = '';
   int creator_id;
-  List messages = [
-                   {'id': 0, 'text': 'hi, there!', 'user_id': 10, 'meta': {}, 'date_time': '12-12-2012'},
-                   {'id': 1, 'text': 'hi!', 'user_id': 1, 'meta': {}, 'date_time': '12-12-2012'},
-                   {'id': 2, 'text': 'hey!', 'user_id': 2, 'meta': {}, 'date_time': '12-12-2012'},
-                   {'id': 3, 'text': 'greets!', 'user_id': 6, 'meta': {}, 'date_time': '12-12-2012'},
-                   {'id': 4, 'text': 'good morning!', 'user_id': 17, 'meta': {}, 'date_time': '12-12-2012'},
-                   {'id': 5, 'text': 'hey-hey!', 'user_id': 11, 'meta': {}, 'date_time': '12-12-2012'}
-                   ];// TODO: replace with [];
+  List messages = [];
   
   Room(this.api) {
     log.info('Room instance created');
@@ -173,7 +165,7 @@ class API {
                 .then(_unauthorize_on_fail);
   }
 
-  create_room(String roomname) { // TODO: autojoin room
+  create_room(String roomname) {
     return _http.post( _endpoint('room'),
                       {
                         'name':roomname,
@@ -188,7 +180,7 @@ class API {
   }
   
 
-  post_message(int room_id, String text, [meta = const{}]) { // TODO: return author info as well??
+  post_message(int room_id, String text, [meta = const{}]) {
     return _http.post( _endpoint('room') + room_id.toString(),
                       {
                         'text':text,
@@ -204,7 +196,7 @@ class API {
   }
   
   enter_room(int room_id) {
-    return _http.put( _endpoint('room'), {'room_id':room_id} ) // TODO: modify room_id retrieval @ backend
+    return _http.put( _endpoint('room'), {'room_id':room_id} )
           .then(_unauthorize_on_fail);
   }
   
