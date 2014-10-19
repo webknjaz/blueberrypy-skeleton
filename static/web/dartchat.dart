@@ -16,7 +16,7 @@ const List<String> CSS_URLs = const [
 @Injectable()
 class User {
   final Logger log = new Logger('User');
-  String username = '<username>';
+  String username = '';
   String displayname = '';
   String password = '';
   bool isAuthorized = false;

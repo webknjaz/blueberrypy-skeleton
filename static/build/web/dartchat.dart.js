@@ -17919,7 +17919,7 @@ w207:{
 "^":"TpZ:123;",
 $0:[function(){var z=N.Jx("User")
 z.To("User created")
-return new U.UI(z,"<username>","","",!1,!0)},"$0",null,0,0,null,"call"],
+return new U.UI(z,"","","",!1,!0)},"$0",null,0,0,null,"call"],
 $isEH:true},
 w208:{
 "^":"TpZ:14;",
