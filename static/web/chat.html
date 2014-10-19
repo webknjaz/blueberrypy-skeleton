@@ -1,10 +1,10 @@
 <div class="panel panel-info">
     <div class="panel-heading">
-        #portaone
+        {{ room.name }}
     </div>
     <div class="panel-body" clear-fix>
         <ul class="media-list">
-            <li class="media" ng-repeat="i in [1,2,3,4,5]"><chat-message></chat-message></li>
+            <li class="media" ng-repeat="message in room.messages"><chat-message message="message"></chat-message></li>
         </ul>
     </div>
 </div>

@@ -1,10 +1,17 @@
 <div class="container-fluid" app-wrapper>
   <div class="row">
-    <div class="col-xs-1 col-md-2">
-      <sidebar></sidebar>
-    </div>
-    <div class="col-xs-11 col-md-10" chat-wrapper>
-      <chat></chat>
+    <div ng-switch="user.isAuthorized">
+      <div ng-switch-when="false">
+        <login></login>
+      </div>
+      <div ng-switch-when="true">
+        <div class="col-xs-1 col-md-2">
+          <sidebar></sidebar>
+        </div>
+        <div class="col-xs-11 col-md-10" chat-wrapper>
+          <chat></chat>
+        </div>
+      </div>
     </div>
   </div>
 </div>

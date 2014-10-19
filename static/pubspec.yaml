@@ -7,5 +7,14 @@ dependencies:
   web_components: any
 
 transformers:
-- angular
-  
+- angular:
+    html_files:
+      - web/app.html
+      - web/chat.html
+      - web/chat_message.html
+      - web/dartchat.html
+      - web/footer.html
+      - web/login.html
+      - web/sidebar.html
+#  html_files:
+#    - login.html
