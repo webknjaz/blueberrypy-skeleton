@@ -71,6 +71,8 @@ class RoomController:
         orm_session = req.orm_session
         room = from_collection(req.json, Room())
         room.creator_id = cherrypy.session['user_id']
+        user = api.find_user_by_id(orm_session, cherrypy.session['user_id'])
+        room.members.append(user)
         try:
             orm_session.add(room)
             orm_session.commit()
@@ -165,6 +167,16 @@ class UserController:
                           sort_keys=True)
 
     @cherrypy.tools.json_out()
+    def check(self, name, **kwargs):
+        '''
+        `user_check`
+        [HEAD] /user/{name}
+        '''
+        user = api.find_user_by_id(cherrypy.request.orm_session,
+                                    name)
+        return user is not None
+
+    @cherrypy.tools.json_out()
     @auth
     def show(self, **kwargs):
         '''
@@ -234,6 +246,9 @@ rest_api.connect("user_register", "/user/", UserController,
 # user info
 rest_api.connect("user_show", "/user/", UserController,
                         action="show", conditions={"method":["GET"]})
+# user info
+rest_api.connect("user_check", "/user/{name}", UserController,
+                        action="check", conditions={"method":["HEAD"]})
 # list rooms user joined
 rest_api.connect("user_show_rooms", "/user/rooms", UserController,
                         action="list_rooms", conditions={"method":["GET"]})
