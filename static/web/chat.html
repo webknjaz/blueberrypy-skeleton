@@ -3,7 +3,7 @@
         {{ room.name }}
     </div>
     <div class="panel-body" clear-fix>
-        <ul class="media-list">
+        <ul class="media-list" ng-show="room.messages.length > 0">
             <li class="media" ng-repeat="message in room.messages"><chat-message message="message"></chat-message></li>
         </ul>
     </div>

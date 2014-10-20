@@ -177,9 +177,11 @@ class UserController:
         `user_check`
         [HEAD] /user/{name}
         '''
-        user = api.find_user_by_id(cherrypy.request.orm_session,
+        user = api.find_user_by_name(cherrypy.request.orm_session,
                                     name)
-        return user is not None
+        if user is None:
+            raise HTTPError(404)
+        return {"status":"OK", "code": 200}
 
     @cherrypy.tools.json_out()
     @auth

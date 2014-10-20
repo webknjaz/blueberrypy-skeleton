@@ -1,6 +1,7 @@
 // https://slack.com/ parody
 
-//import 'dart:html';
+import 'dart:html';
+
 import 'package:angular/angular.dart';
 import 'package:angular/application_factory.dart';
 
@@ -21,8 +22,15 @@ class User {
   String password = '';
   bool isAuthorized = false;
   bool exists = true;
+  Storage _localStorage = window.localStorage;
   
   User() {
+    try { // restore user if he's been authorized
+      username = _localStorage['username'];
+      isAuthorized = _localStorage['isAuthorized'] == 'true';
+      displayname = _localStorage['username'];
+      exists = _localStorage['exists'] == 'true';
+    } catch(_){};
     log.info('User created');
   }
 }
@@ -117,7 +125,9 @@ class API {
     log.info('API instance initialized');
   }
   
-  void _unauthorize_on_fail(HttpResponse _) {
+  _unauthorize_on_fail(HttpResponse _) {
+    log.info('checking auth');
+    log.info(_);
     if (_.status == 401) throw new Exception('User session expired');
   }
 
@@ -127,12 +137,12 @@ class API {
                         'username':username,
                         'password':password
                       }
-          ).then(_unauthorize_on_fail);
+          );//.then(_unauthorize_on_fail);
   }
   
   logout() {
-    return _http.delete( _endpoint('auth'))
-                .then(_unauthorize_on_fail);
+    return _http.delete( _endpoint('auth'));
+                //.then(_unauthorize_on_fail);
   }
   
   checkuser(String username) {
@@ -146,23 +156,23 @@ class API {
                         'password':password,
                         'displayname':displayname
                       }
-          )
-          .then(_unauthorize_on_fail);
+          );
+          //.then(_unauthorize_on_fail);
   }
   
   list_joined_rooms() {
-    return _http.get( _endpoint('user') + 'rooms' )
-          .then(_unauthorize_on_fail);
+    return _http.get( _endpoint('user') + 'rooms' );
+          //.then(_unauthorize_on_fail);
   }
   
   list_own_rooms() {
-    return _http.get( _endpoint('user') + 'rooms/own' )
-          .then(_unauthorize_on_fail);
+    return _http.get( _endpoint('user') + 'rooms/own' );
+          //.then(_unauthorize_on_fail);
   }
   
   leave_room(int room_id) {
-    return _http.delete( _endpoint('auth') + room_id.toString() )
-                .then(_unauthorize_on_fail);
+    return _http.delete( _endpoint('auth') + room_id.toString() );
+                //.then(_unauthorize_on_fail);
   }
 
   create_room(String roomname) {
@@ -170,13 +180,13 @@ class API {
                       {
                         'name':roomname,
                       }
-          )
-          .then(_unauthorize_on_fail);
+          );
+          //.then(_unauthorize_on_fail);
   }
   
   list_rooms() {
-    return _http.get( _endpoint('room') )
-          .then(_unauthorize_on_fail);
+    return _http.get( _endpoint('room') );
+          //.then(_unauthorize_on_fail);
   }
   
 
@@ -186,51 +196,20 @@ class API {
                         'text':text,
                         'meta':meta
                       }
-          )
-          .then(_unauthorize_on_fail);
+          );
+          //.then(_unauthorize_on_fail);
   }
 
   list_messages(int room_id) {
-    return _http.get( _endpoint('room') +  room_id.toString() )
-          .then(_unauthorize_on_fail);
+    return _http.get( _endpoint('room') +  room_id.toString() );
+          //.then(_unauthorize_on_fail);
   }
   
   enter_room(int room_id) {
-    return _http.put( _endpoint('room'), {'room_id':room_id} )
-          .then(_unauthorize_on_fail);
+    return _http.put( _endpoint('room'), {'room_id':room_id} );
+          //.then(_unauthorize_on_fail);
   }
   
-  /*void _loadData() {
-    roomsListLoaded = false;
-    
-    _http.get('api/rooms.json')
-      .then((HttpResponse response) {
-        rooms = response.data;
-        //recipes = response.data.map((d) => new Recipe.fromJson(d)).toList();
-        roomsListLoaded = true;
-      })
-      .catchError((e) {
-        roomsListLoaded = false;
-        //message = ERROR_MESSAGE;
-      });
-    
-  }*/
-  /*
-  void _loadData() {
-    roomsListLoaded = false;
-    
-    _http.get('api/rooms.json')
-      .then((HttpResponse response) {
-        rooms = response.data;
-        //recipes = response.data.map((d) => new Recipe.fromJson(d)).toList();
-        roomsListLoaded = true;
-      })
-      .catchError((e) {
-        roomsListLoaded = false;
-        //message = ERROR_MESSAGE;
-      });
-    
-  }*/
 }
 
 
@@ -242,6 +221,7 @@ class API {
     useNgBaseCss: true)
 class LoginView {
   final Logger log = new Logger('LoginView');
+  Storage _localStorage = window.localStorage;
   @NgTwoWay('user')
   User user;
   API api;
@@ -258,25 +238,49 @@ class LoginView {
       api
         .login(user.username, user.password)
         .then((HttpResponse response) {
+          log.info('processing response');
+          log.info(response);
+          log.info(response.data);
+          log.info(response.data['username']);
           var data = response.data;
-          user.username = data.username;
-          user.displayname = data.displayname;
-          user.password = ''; 
+          log.info('setting data/user');
+          user.username = data['username'];
+          user.displayname = data['displayname'];
+          user.password = '';
+          user.isAuthorized = true;
+          
+          _localStorage['username'] = user.username;
+          _localStorage['isAuthorized'] = user.isAuthorized.toString();
+          _localStorage['displayname'] = user.displayname;
+          _localStorage['exists'] = 'true';
+          log.info('finished processing response');
           /*response.data.map((_){
             user[_[0]] = _[1];
           });*/
         }).catchError((_) {
+          log.info('catchError');
+          log.info(_);
           user.password = '';
         });
     } else {
       api
         .register(user.username, user.password, user.displayname)
         .then((HttpResponse response) {
+          log.info('processing response');
+          log.info(response);
           var data = response.data;
-          user.username = data.username;
-          user.displayname = data.displayname;
+          user.username = data['username'];
+          user.displayname = data['displayname'];
           user.password = ''; 
+          user.isAuthorized = true;
+
+          _localStorage['username'] = user.username;
+          _localStorage['isAuthorized'] = user.isAuthorized.toString();
+          _localStorage['displayname'] = user.displayname;
+          _localStorage['exists'] = 'true';
         }).catchError((_) {
+          log.info('catchError');
+          log.info(_);
           user.password = '';
         });
     }
@@ -288,7 +292,7 @@ class LoginView {
       .checkuser(user.username)
       .then((HttpResponse response) {
         if (200 <= response.status && response.status < 300) {
-          user.exists = response.data;
+          user.exists = true;
           log.info("$user.username exists");
         } else {
           user.exists = false;
@@ -328,6 +332,7 @@ class Footer {
   API api;
   @NgTwoWay('user')
   User user;
+  @NgTwoWay('room')
   Room room;
   @NgTwoWay('message')
   var message = '';
@@ -373,7 +378,6 @@ class Sidebar {
     rooms = RoomsListLoader();
     print('sidebar init');
     print(user.username);
-    _loadData();
   }
   
   refreshRoomsList() {
@@ -405,24 +409,7 @@ class Sidebar {
         log.info("$user.username does not exist, show displayname input.");
         log.finest(_);
       });
-  }
-  
-  void _loadData() {
-    roomsListLoaded = false;
-    
-    _http.get('api/rooms.json')
-      .then((HttpResponse response) {
-        rooms = response.data;
-        //recipes = response.data.map((d) => new Recipe.fromJson(d)).toList();
-        roomsListLoaded = true;
-      })
-      .catchError((e) {
-        roomsListLoaded = false;
-        //message = ERROR_MESSAGE;
-      });
-    
-  }
-  
+  }  
 }
 
 @Component(

@@ -3,7 +3,7 @@
     <div class="well" ng-cloak>Hi, {{ user.username }}!<br><a href="#logout" ng-click="logout()">logout</a></div>
   </div>
 </div>
-<ul class="nav nav-pills nav-stacked">
+<ul class="nav nav-pills nav-stacked" ng-show="rooms.length > 0">
   <li ng-repeat="r in rooms" ng-class="{'active': room.name == r.name}">
     <a href="#{{ r.id }}" ng-click="loadRoom(r)">
       <span class="badge pull-right" ng-show="r.unread_count > 0">{{ r.unread_count }}</span>
