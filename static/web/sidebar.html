@@ -1,10 +1,16 @@
 <div class="container">
   <div class="row">
-    <div class="well" ng-cloak>Hi, {{ user.username }}!<br><a href="#logout" ng-click="logout()">logout</a></div>
+    <div class="well" ng-cloak>
+      Hi, {{ user.displayname }}!<br>
+      <a href="#logout" ng-click="logout()" onclick="return false;">logout</a><br>
+      <hr>
+      <a href="#find" ng-click="listAllRooms(); room.id = -1" onclick="return false;">Find room</a><br>
+      <a href="#create" ng-click="room.id = null" onclick="return false;">Create room</a><br>
+    </div>
   </div>
 </div>
-<ul class="nav nav-pills nav-stacked" ng-show="rooms.length > 0">
-  <li ng-repeat="r in rooms" ng-class="{'active': room.name == r.name}">
+<ul class="nav nav-pills nav-stacked" ng-show="jrs.rooms.length > 0">
+  <li ng-repeat="r in jrs.rooms" ng-class="{'active': room.name == r.name}">
     <a href="#{{ r.id }}" ng-click="loadRoom(r)">
       <span class="badge pull-right" ng-show="r.unread_count > 0">{{ r.unread_count }}</span>
       {{ r.name }}

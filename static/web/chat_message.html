@@ -6,7 +6,7 @@
         <div class="media-body">
             {{message.text}}
             <br>
-           <small class="text-muted" creator-id="{{message.user_id}}">John Doe | {{message.date_time}}</small>
+           <small class="text-muted" creator-id="{{message.user_id}}">{{ message.author.username }} | {{ message.date_time.datetime }}</small>
             <hr>
         </div>
     </div>

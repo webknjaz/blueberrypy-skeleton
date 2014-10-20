@@ -1,6 +1,8 @@
 // https://slack.com/ parody
 
 import 'dart:html';
+//import 'dart:io';
+import 'dart:async';
 
 import 'package:angular/angular.dart';
 import 'package:angular/application_factory.dart';
@@ -13,6 +15,45 @@ const List<String> CSS_URLs = const [
                                      'dartchat.css'
                                      ];
 
+@Injectable()
+class $roomsService {
+  final API _api;
+  List rooms;
+  
+  $roomsService(API this._api) {
+    refresh();
+  }
+  
+  refresh() {
+    _api.list_rooms().then((HttpResponse _) {
+      rooms = _.data;
+    });
+  }
+}
+
+@Injectable()
+class $joinedRoomsService {
+  final API _api;
+  final User _user;
+  final Room _room;
+  List rooms;
+  
+  $joinedRoomsService(API this._api, User this._user, Room this._room) {
+    refresh();
+  }
+  
+
+  refresh() {
+    _api.list_joined_rooms()
+      .then((HttpResponse _) {
+        rooms = _.data;
+        if (rooms.length > 0 && _room.id == null) {
+          _room.load(rooms[0]);
+        }
+      }).catchError((_){
+      });
+  }
+}
 
 @Injectable()
 class User {
@@ -42,7 +83,7 @@ class Room {
   
   API api;
   
-  int id;
+  int id = null;
   String name = '';
   int creator_id;
   List messages = [];
@@ -52,83 +93,46 @@ class Room {
   }
   
   load(var activeRoom) {
-    api.list_messages(activeRoom.id)
+    api.list_messages(activeRoom['id'])
       .then((HttpResponse _){
-        id = activeRoom.id;
-        name = activeRoom.name;
-        creator_id = activeRoom.creator_id;
-        messages = _.data.messages;
+        id = activeRoom['id'];
+        name = activeRoom['name'];
+        creator_id = activeRoom['creator_id'];
+        messages = _.data;
       }).catchError((_){});
   }
+  
+  toString() => "$id: $name by $creator_id; messages: ${messages.length}";
 }
 
-@Injectable()
-class MemberRooms {
-  final Logger log = new Logger('MemberRooms');
-  API api;
-  
-  List _rooms;
-  
-  call() {
-    return _rooms;
-  }
-    
-  MemberRooms(this.api) {
-    log.info('MemberRooms instance created');
-    reloadRooms();
-  }
-  
-  void reloadRooms() {
-    api.list_joined_rooms()
-      .then((HttpResponse _){
-        _rooms = _.data;
-        log.info('rooms list loaded');
-      }).catchError((_){});
-  }
-}
-
-
-
-@Injectable()
-class ListRooms {
-  final Logger log = new Logger('ListRooms');
-  API api;
-  
-  List _rooms;
-  
-  call() {
-    return _rooms;
-  }
-    
-  ListRooms(this.api) {
-    log.info('ListRooms instance created');
-    reloadRooms();
-  }
-  
-  void reloadRooms() {
-    api.list_rooms()
-      .then((HttpResponse _){
-        _rooms = _.data;
-        log.info('all rooms list loaded');
-      }).catchError((_){});
-  }
-}
 
 @Injectable()
 class API {
   final Http _http;
+  final User _user;
   final Logger log = new Logger('API');
+  HttpInterceptors _interceptors;
   
   String _endpoint(String _) => "/api/$_/";
   
-  API(this._http) {
+  API(this._http, this._user, this._interceptors) {
     log.info('API instance initialized');
-  }
-  
-  _unauthorize_on_fail(HttpResponse _) {
-    log.info('checking auth');
-    log.info(_);
-    if (_.status == 401) throw new Exception('User session expired');
+
+    var intercept = new HttpInterceptor();
+    intercept.responseError = (dynamic _) {
+      log.info('In interceptor');
+      log.info('checking auth');
+      //log.info(_);
+      if (_.status == 401) {
+          this._user.isAuthorized = false;
+	        log.info('Unauthorize user');
+    	  //throw new Exception('User session expired');
+      }
+      return new Future.error(_); //<-- return a Future.error
+    };
+    _interceptors.add(intercept);
+
+    log.info('Interceptor configured');
   }
 
   login(String username, String password) {
@@ -137,12 +141,11 @@ class API {
                         'username':username,
                         'password':password
                       }
-          );//.then(_unauthorize_on_fail);
+          );
   }
   
   logout() {
     return _http.delete( _endpoint('auth'));
-                //.then(_unauthorize_on_fail);
   }
   
   checkuser(String username) {
@@ -157,22 +160,18 @@ class API {
                         'displayname':displayname
                       }
           );
-          //.then(_unauthorize_on_fail);
   }
   
   list_joined_rooms() {
     return _http.get( _endpoint('user') + 'rooms' );
-          //.then(_unauthorize_on_fail);
   }
   
   list_own_rooms() {
     return _http.get( _endpoint('user') + 'rooms/own' );
-          //.then(_unauthorize_on_fail);
   }
   
   leave_room(int room_id) {
-    return _http.delete( _endpoint('auth') + room_id.toString() );
-                //.then(_unauthorize_on_fail);
+    return _http.delete( _endpoint('user') + "rooms/$room_id" );
   }
 
   create_room(String roomname) {
@@ -181,12 +180,10 @@ class API {
                         'name':roomname,
                       }
           );
-          //.then(_unauthorize_on_fail);
   }
   
   list_rooms() {
     return _http.get( _endpoint('room') );
-          //.then(_unauthorize_on_fail);
   }
   
 
@@ -197,17 +194,14 @@ class API {
                         'meta':meta
                       }
           );
-          //.then(_unauthorize_on_fail);
   }
 
   list_messages(int room_id) {
     return _http.get( _endpoint('room') +  room_id.toString() );
-          //.then(_unauthorize_on_fail);
   }
   
   enter_room(int room_id) {
     return _http.put( _endpoint('room'), {'room_id':room_id} );
-          //.then(_unauthorize_on_fail);
   }
   
 }
@@ -224,8 +218,10 @@ class LoginView {
   Storage _localStorage = window.localStorage;
   @NgTwoWay('user')
   User user;
+  Room _room;
   API api;
-  LoginView(User this.user, API this.api) {
+  
+  LoginView(User this.user, API this.api, Room this._room) {
     log.info('Login layout init');
     log.info(user.username);
     log.info(user.isAuthorized);
@@ -233,6 +229,9 @@ class LoginView {
   }
 
   void reglogin() {
+    _room.id = null;
+    _room.name = '';
+    _room.messages = [];
     log.info('reglogin clicked');
     if (user.exists) {
       api
@@ -335,7 +334,7 @@ class Footer {
   @NgTwoWay('room')
   Room room;
   @NgTwoWay('message')
-  var message = '';
+  String message = '';
   Footer(this.user, this.api, this.room) {
     log.info('footer init');
     log.info(user);
@@ -347,7 +346,9 @@ class Footer {
     api.post_message(room.id, message).then((HttpResponse _){
       if (200 <= _.status && _.status < 300) {
         log.info('message sent');
+        _.data['author'] = user;
         room.messages.add(_.data);
+        room.load({'room_id':room.id});
       } else {
         log.info('smth went wrong');
       }
@@ -363,9 +364,9 @@ class Footer {
 class Sidebar {
   final Http _http;
   var roomsListLoaded = false;
-  @NgTwoWay('rooms')
-  List rooms;
-  MemberRooms RoomsListLoader;
+
+  @NgTwoWay('roomsSrv')
+  $roomsService roomsSrv;
   
   final Logger log = new Logger('User');
   @NgTwoWay('user')
@@ -373,26 +374,33 @@ class Sidebar {
   API api;
   
   Room room;
-  
-  Sidebar(this.user, this._http, this.api, this.room, this.RoomsListLoader) {
-    rooms = RoomsListLoader();
+
+  @NgTwoWay('jrs')
+  $joinedRoomsService jrs;
+
+  Sidebar(this.user, this._http, this.api, this.room, $roomsService this.roomsSrv, $joinedRoomsService this.jrs) {
+    jrs.refresh();
     print('sidebar init');
     print(user.username);
   }
   
-  refreshRoomsList() {
-    RoomsListLoader.reloadRooms();
-    rooms = RoomsListLoader();
-  }
-  
   loadRoom(activeRoom) {
     //user.activeChat = room.name;
-    log.info("Loading $activeRoom.id");
+    log.info("Loading ${activeRoom['id']}");
     room.load(activeRoom);
   }
   
-  void logout() {
+  listAllRooms() {
+    roomsSrv.refresh();
+  }
+  
+  logout() {
     log.info("Signing out $user.username.");
+    user.isAuthorized = false;
+    user.exists = true;
+    room.id = null;
+    room.name = '';
+    room.messages = [];
     api
       .logout()
       .then((HttpResponse response) {
@@ -401,13 +409,9 @@ class Sidebar {
         } else {
           log.info("$user.username session did not exist in server.");
         }
-        user.isAuthorized = false;
-        user.exists = true;
       }).catchError((_){
-        user.isAuthorized = false;
-        user.exists = true;
         log.info("$user.username does not exist, show displayname input.");
-        log.finest(_);
+        //log.finest(_);
       });
   }  
 }
@@ -419,16 +423,49 @@ class Sidebar {
 )
 class Chat {
   final Logger log = new Logger('Chat');
+  final API api;
   
   @NgTwoWay('room')
   Room room;
   
-  Chat(this.room) {
+  @NgTwoWay('roomname')
+  String roomname = '';
+
+  @NgTwoWay('roomsSrv')
+  $roomsService roomsSrv;
+  
+  $joinedRoomsService jrs;
+  
+  Chat(Room this.room, API this.api, $roomsService this.roomsSrv, $joinedRoomsService this.jrs) {
     log.info('chat init');
     log.info(room);
-    log.info(room.messages);
-    log.info(room.messages[0]);
-    log.info(room.messages[0]['id']);
+  }
+  
+  newRoom() {
+    log.info(room);
+    api.create_room(roomname)
+        .then((HttpResponse _){
+          room.load(_.data);
+          jrs.refresh();
+        }).catchError((_){ log.info('Room exists'); });
+  }
+  
+  joinRoom(var _room) {
+    log.info(_room);
+    api.enter_room(_room['id'])
+        .then((HttpResponse _){
+          room.load(_.data);
+          jrs.refresh();
+        }).catchError((_){ log.info("Room doesn't exist"); });
+  }
+  
+  leaveRoom(var _room) {
+    log.info(_room);
+    api.leave_room(_room.id)
+        .then((HttpResponse _){
+          room.id = null;
+          jrs.refresh();
+        }).catchError((_){ log.info("Room doesn't exist"); });
   }
 }
 
@@ -445,23 +482,11 @@ class ChatMessage {
   }
 }
 
-/*void chatAppRouteInitializer(Router router, RouteViewFactory views) {
-  views.configure({
-    'login': ngRoute(
-        path: '/login',
-        view: 'login.html'),
-    'add': ngRoute(
-        defaultRoute: true,
-        path: '/chat',
-        view: 'app.html')
-  });
-}*/
 
 class ChatApp extends Module {
   ChatApp() {
     bind(User);
     bind(Room);
-    bind(MemberRooms);
     bind(API);
     bind(AppView);
     bind(LoginView);
@@ -469,6 +494,8 @@ class ChatApp extends Module {
     bind(Chat);
     bind(ChatMessage);
     bind(Footer);
+    bind($roomsService);
+    bind($joinedRoomsService);
     //bind(RouteInitializerFn, toValue: chatAppRouteInitializer);
   }
 }
