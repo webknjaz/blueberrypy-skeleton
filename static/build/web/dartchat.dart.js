@@ -33046,22 +33046,24 @@ var $$ = Object.create(null);
   Footer_postMessage_closure: {
     "^": "Closure:186;this_0",
     call$1: [function(_) {
-      var t1, t2, t3;
-      t1 = J.getInterceptor$x(_);
-      t2 = t1.get$status(_);
-      if (typeof t2 !== "number")
-        return H.iae(t2);
-      t2 = 200 <= t2 && J.$lt$n(t1.get$status(_), 300);
-      t3 = this.this_0;
-      if (t2) {
-        t3.log.info$1("message sent");
-        J.$indexSet$ax(t1.get$data(_), "author", t3.user);
-        J.add$1$ax(t3.room.get$messages(), t1.get$data(_));
-        t1 = t3.room;
+      var t1, t2, t3, t4;
+      t1 = this.this_0;
+      t1.message = "";
+      t2 = J.getInterceptor$x(_);
+      t3 = t2.get$status(_);
+      if (typeof t3 !== "number")
+        return H.iae(t3);
+      t3 = 200 <= t3 && J.$lt$n(t2.get$status(_), 300);
+      t4 = t1.log;
+      if (t3) {
+        t4.info$1("message sent");
+        J.$indexSet$ax(t2.get$data(_), "author", t1.user);
+        J.add$1$ax(t1.room.get$messages(), t2.get$data(_));
+        t1 = t1.room;
         t2 = J.getInterceptor$x(t1);
         t2.load$1(t1, P.LinkedHashMap_LinkedHashMap$_literal(["room_id", t2.get$id(t1)], null, null));
       } else
-        t3.log.info$1("smth went wrong");
+        t4.info$1("smth went wrong");
     }, "call$1", null, 2, 0, null, 87, "call"],
     $isFunction: true
   },

@@ -344,6 +344,7 @@ class Footer {
   postMessage() {
     if (message.length < 1) { log.info('nothing to send'); }
     api.post_message(room.id, message).then((HttpResponse _){
+      message = '';
       if (200 <= _.status && _.status < 300) {
         log.info('message sent');
         _.data['author'] = user;
