@@ -168,6 +168,7 @@ class UserController:
         user = from_collection(req.json, User())
         orm_session.add(user)
         orm_session.commit()
+        cherrypy.session['user_id'] = user.id
         return to_collection(user, excludes=("password", "salt"),
                           sort_keys=True)
 
