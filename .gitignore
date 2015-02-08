@@ -1,11 +1,11 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
 *.py[cod]
 
 # C extensions
 *.so
 
 # Packages
-*.egg
-*.egg-info
 dist
 build
 eggs
@@ -14,20 +14,8 @@ bin
 var
 sdist
 develop-eggs
-.installed.cfg
 lib
 lib64
-
-# Installer logs
-pip-log.txt
-
-# Unit test / coverage reports
-.coverage
-.tox
-nosetests.xml
-
-# Translations
-*.mo
 
 # Mr Developer
 .mr.developer.cfg
@@ -37,7 +25,6 @@ nosetests.xml
 # added by webknjaz
 .cache/*.cache
 src/GDGUkraine/__pycache__/
-env/
 log/*.log
 log/*.log.*
 config
@@ -46,3 +33,41 @@ config/dev/app.yml
 config/prod/app.yml
 *.py.bak
 .hidden
+
+# Distribution / packaging
+.Python
+env/
+downloads/
+.installed.cfg
+*.egg
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.cache
+nosetests.xml
+coverage.xml
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
