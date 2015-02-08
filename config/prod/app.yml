@@ -1,0 +1,46 @@
+project_metadata:
+  package: blueberrypy_skeleton
+
+global:
+  environment: production
+  engine.logging.on: true
+  engine.sqlalchemy.on: true
+
+controllers:
+  '':
+    controller: !!python/name:blueberrypy_skeleton.controller.Root
+    /:
+      tools.sessions.on: false
+      tools.sessions.persistent: True
+      tools.sessions.timeout: 20160 #2 weeks in minutes
+      tools.proxy.on: true
+      tools.staticdir.root: /app/static/build/web
+      tools.staticfile.root: /app/static/web
+    /favicon.ico:
+      tools.sessions.on: false
+      tools.staticfile.on: true
+      tools.staticfile.filename: favicon.ico
+  /api:
+    controller: !!python/name:blueberrypy_skeleton.rest_controller.rest_api
+    /:
+      request.dispatch: !!python/name:blueberrypy_skeleton.rest_controller.rest_api
+      tools.proxy.on: true
+      tools.sessions.on: true
+      tools.sessions.persistent: True
+      tools.sessions.timeout: 20160 #2 weeks in minutes
+      tools.orm_session.on: true
+      error_page.default: !!python/name:blueberrypy_skeleton.rest_controller.generic_error_handler
+      request.error_response: !!python/name:blueberrypy_skeleton.rest_controller.unexpected_error_handler
+
+sqlalchemy_engine:
+  url: postgres://login:password@hostname:port/db_name
+  pool_recycle: 3600
+
+jinja2:
+  loader: !!python/object:jinja2.loaders.FileSystemLoader
+          encoding: utf-8
+          searchpath: [/app/src/blueberrypy_skeleton/templates]
+  bytecode_cache: !!python/object:jinja2.bccache.FileSystemBytecodeCache {directory: /app/.cache,
+                                                                          pattern: __jinja2_%s.cache}
+  auto_reload: false
+  use_webassets: true
