@@ -29,6 +29,24 @@ def auth(func):
         return func(*args, **kwargs)
     return wrapper
 
+class REST_API_Base:
+    _cp_config = {"tools.json_in.on": True}
+
+    def create(self, **kwargs):
+        raise NotImplementedError()
+
+    def show(self, **kwargs):
+        raise NotImplementedError()
+
+    def list_all(self, **kwargs):
+        raise NotImplementedError()
+
+    def update(self, **kwargs):
+        raise NotImplementedError()
+
+    def delete(self, **kwargs):
+        raise NotImplementedError()
+
 class AuthController:
 
     _cp_config = {"tools.json_in.on": True}

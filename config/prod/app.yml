@@ -14,8 +14,20 @@ controllers:
       tools.sessions.persistent: True
       tools.sessions.timeout: 20160 #2 weeks in minutes
       tools.proxy.on: true
-      tools.staticdir.root: /app/static/build/web
-      tools.staticfile.root: /app/static/web
+      tools.staticdir.root: /app/static
+      tools.staticfile.root: /app/static
+    /css:
+      tools.sessions.on: false
+      tools.staticdir.on: true
+      tools.staticdir.dir: css
+    /js:
+      tools.sessions.on: false
+      tools.staticdir.on: true
+      tools.staticdir.dir: js
+    /img:
+      tools.sessions.on: false
+      tools.staticdir.on: true
+      tools.staticdir.dir: img
     /favicon.ico:
       tools.sessions.on: false
       tools.staticfile.on: true

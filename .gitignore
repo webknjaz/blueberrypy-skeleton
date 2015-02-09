@@ -5,20 +5,40 @@ __pycache__/
 # C extensions
 *.so
 
+# Packages
+dist
+build
+eggs
+parts
+bin
+var
+sdist
+develop-eggs
+lib
+lib64
+*.egg-info/
+
+# Mr Developer
+.mr.developer.cfg
+.project
+.pydevproject
+
+# added by webknjaz
+.cache/*.cache
+src/GDGUkraine/__pycache__/
+log/*.log
+log/*.log.*
+config
+config/
+config/dev/app.yml
+config/prod/app.yml
+*.py.bak
+.hidden
+
 # Distribution / packaging
 .Python
 env/
-build/
-develop-eggs/
-dist/
 downloads/
-eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-*.egg-info/
 .installed.cfg
 *.egg
 
